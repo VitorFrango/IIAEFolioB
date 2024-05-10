@@ -33,6 +33,7 @@ struct Graph {
     }
 };
 
+// A* Search Algorithm structure
 struct AStarSearch {
     Graph& graph;
     Node* start;
@@ -57,6 +58,7 @@ struct AStarSearch {
         return path;
     }
 
+    // função de busca
     void search() {
         while (!openSet.empty()) {
             Node* current = openSet.top().second;
