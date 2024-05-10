@@ -1,7 +1,3 @@
-//
-// Created by Vitor Frango on 10/05/2024.
-//
-
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -14,16 +10,24 @@ using namespace std;
 struct State {
     vector<vector<int>> board;  // Grid representing the zones with family counts
     vector<vector<int>> stations;  // Grid representing station placements
-    int A;  // number of stations
-    double B;  // average cost of transportation
+    int A;  // Number of stations
+    double B;  // Average cost of transportation
 };
 
-struct Node {
-    State state;
-    double g;  // Cost to reach this node
-    double h;  // Estimated cost to goal
-    double f;  // Estimated total cost (f = g + h)
-    Node* parent;
+struct State {
+    vector<vector<int>> board;  // Grid representing the zones with family counts
+    vector<vector<int>> stations;  // Grid representing station placements
+    int A;  // number of stations
+    double B;  // average cost of transportation
+
+    bool operator<(const State& other) const {
+        // Define your comparison logic here
+        // This is a simple example, you might need to adjust it based on your needs
+        bool operator==(const State& other) const {
+            return board == other.board && stations == other.stations && A == other.A && B == other.B;
+        }
+
+    }
 };
 
 class Compare {
@@ -41,9 +45,13 @@ double heuristic(const State& state) {
     return 0;  // Placeholder
 }
 
+double calculateCost(int A, double B) {
+    return 1000 * A + 100 * B;
+}
+
 double transportationCost(const State& state) {
-    // Calculate transportation cost B
-    return 0;  // Placeholder
+    // Calculate transportation cost B based on the distances and number of families
+    return 0;  // Placeholder, needs proper calculation based on the problem
 }
 
 bool goalTest(const State& state) {
@@ -58,7 +66,7 @@ vector<State> generateSuccessors(const State& current) {
 }
 
 void aStar(State initialState) {
-    Node* start = new Node{initialState, 0, heuristic(initialState), heuristic(initialState), nullptr};
+    Node* start = new Node{initialState, calculateCost(initialState.A, initialState.B), heuristic(initialState), calculateCost(initialState.A, initialState.B) + heuristic(initialState), nullptr};
     openList.push(start);
 
     while (!openList.empty()) {
@@ -80,7 +88,7 @@ void aStar(State initialState) {
         vector<State> successors = generateSuccessors(current->state);
 
         for (State& successor : successors) {
-            double temp_g = current->g + transportationCost(successor);
+            double temp_g = calculateCost(successor.A, transportationCost(successor));
             double temp_f = temp_g + heuristic(successor);
 
             if (closedList.find(successor) != closedList.end() && closedList[successor] <= temp_f) {
@@ -100,11 +108,11 @@ int main() {
     // Example of initializing a 5x5 grid for ID1
     State initialState;
     initialState.board = {
-        {0, 7, 0, 0, 4},
-        {0, 0, 0, 4, 0},
-        {1, 0, 0, 0, 0},
-        {4, 4, 1, 0, 0},
-        {6, 0, 3, 4, 4}
+            {0, 7, 0, 0, 4},
+            {0, 0, 0, 4, 0},
+            {1, 0, 0, 0, 0},
+            {4, 4, 1, 0, 0},
+            {6, 0, 3, 4, 4}
     };
     initialState.stations = vector<vector<int>>(5, vector<int>(5, 0));
     // Example: placing a station at (2, 2)

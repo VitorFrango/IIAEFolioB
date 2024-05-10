@@ -49,15 +49,9 @@ cmake_ninja_workdir = /Users/vitorfrango/Library/CloudStorage/OneDrive-Universid
 
 build cmake_object_order_depends_target_EfolioB: phony || CMakeFiles/EfolioB.dir
 
-build CMakeFiles/EfolioB.dir/main.cpp.o: CXX_COMPILER__EfolioB_unscanned_Debug /Users/vitorfrango/Library/CloudStorage/OneDrive-UniversidadeAberta/2$ Ano/Introducao$ Inteligencia$ Artificial/EfolioB/main.cpp || cmake_object_order_depends_target_EfolioB
-  DEP_FILE = CMakeFiles/EfolioB.dir/main.cpp.o.d
-  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk -fcolor-diagnostics
-  OBJECT_DIR = CMakeFiles/EfolioB.dir
-  OBJECT_FILE_DIR = CMakeFiles/EfolioB.dir
-
-build CMakeFiles/EfolioB.dir/1802925EfolioB.cpp.o: CXX_COMPILER__EfolioB_unscanned_Debug /Users/vitorfrango/Library/CloudStorage/OneDrive-UniversidadeAberta/2$ Ano/Introducao$ Inteligencia$ Artificial/EfolioB/1802925EfolioB.cpp || cmake_object_order_depends_target_EfolioB
-  DEP_FILE = CMakeFiles/EfolioB.dir/1802925EfolioB.cpp.o.d
-  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk -fcolor-diagnostics
+build CMakeFiles/EfolioB.dir/aStar_Alg.cpp.o: CXX_COMPILER__EfolioB_unscanned_Debug /Users/vitorfrango/Library/CloudStorage/OneDrive-UniversidadeAberta/2$ Ano/Introducao$ Inteligencia$ Artificial/EfolioB/aStar_Alg.cpp || cmake_object_order_depends_target_EfolioB
+  DEP_FILE = CMakeFiles/EfolioB.dir/aStar_Alg.cpp.o.d
+  FLAGS = -g -std=gnu++11 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/EfolioB.dir
   OBJECT_FILE_DIR = CMakeFiles/EfolioB.dir
 
@@ -69,7 +63,7 @@ build CMakeFiles/EfolioB.dir/1802925EfolioB.cpp.o: CXX_COMPILER__EfolioB_unscann
 #############################################
 # Link the executable EfolioB
 
-build EfolioB: CXX_EXECUTABLE_LINKER__EfolioB_Debug CMakeFiles/EfolioB.dir/main.cpp.o CMakeFiles/EfolioB.dir/1802925EfolioB.cpp.o
+build EfolioB: CXX_EXECUTABLE_LINKER__EfolioB_Debug CMakeFiles/EfolioB.dir/aStar_Alg.cpp.o
   FLAGS = -g -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk
   OBJECT_DIR = CMakeFiles/EfolioB.dir
   POST_BUILD = :
