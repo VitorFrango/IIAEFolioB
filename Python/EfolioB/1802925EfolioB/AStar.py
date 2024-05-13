@@ -1,16 +1,14 @@
 import heapq
 
-
 class Node:
     def __init__(self, node_id):
         self.id = node_id
         self.x = 0
         self.y = 0
 
-
 class Graph:
     def __init__(self, size):
-        self.adj = []
+        self.adj = [[] for _ in range(size)]  # Initialize as a list of empty lists
         self.nodes = [Node(i) for i in range(size)]
 
     def add_edge(self, from_node, to_node, cost):
@@ -22,12 +20,11 @@ class Graph:
     def load_from_matrix(self, matrix):
         size = len(matrix)
         for i in range(size):
-            for j in range(size):
+            for j in range(len(matrix[i])):  # Ensure we're within bounds of each row
                 self.add_edge(self.nodes[i], self.nodes[j], matrix[i][j])
 
     def get_neighbors(self, node):
         return self.adj.get(node.id, [])
-
 
 class AStarSearch:
     def __init__(self, graph, start, goal):
@@ -36,8 +33,8 @@ class AStarSearch:
         self.goal = goal
         self.open_set = []
         heapq.heappush(self.open_set, (0, start))
-        self.g_score = [start.id: 0]
-        self.came_from = []
+        self.g_score = {start.id: 1}
+        self.came_from = {}  # Initialize as a dictionary
 
     def heuristic(self, a, b):
         return abs(a.id - b.id)
@@ -60,7 +57,7 @@ class AStarSearch:
                 return
 
             for neighbor, cost in self.graph.get_neighbors(current):
-                tentative_g_score = self.g_score[current.id] + cost
+                tentative_g_score = self.g_score[current.id] + int(cost)
 
                 if tentative_g_score < self.g_score.get(neighbor.id, float('inf')):
                     self.came_from[neighbor.id] = current
@@ -69,10 +66,14 @@ class AStarSearch:
                     heapq.heappush(self.open_set, (f_score, neighbor))
 
 
-# Lista de instâncias das matrizes fornecidas
-instances = [
 
-                # 5x5
+
+
+
+# Lista de instâncias das matrizes fornecidas
+instancias = [
+
+                # ID1  5x5
                 [
                 [0,7,0,0,4],
                 [0,0,0,4,0],
@@ -80,6 +81,7 @@ instances = [
                 [4,4,1,0,0],
                 [6,0,3,4,4],
                 ],
+                # ID2  5x5
                 [
                 [4,0,0,10,1],
                 [1,0,0,0,0],
@@ -87,7 +89,8 @@ instances = [
                 [0,4,0,0,2],
                 [8,0,6,3,0],
                 ],
-                #7x7
+
+                # ID3 7x7
                 [
                 [0,8,0,4,5,10,0],
                 [0,4,0,7,0,4,0],
@@ -97,6 +100,7 @@ instances = [
                 [0,4,0,0,3,0,0],
                 [2,0,0,0,0,0,0],
                 ],
+                # ID4 7x7
                 [
                 [0,0,1,0,7,0,1],
                 [0,1,4,0,0,0,4],
@@ -106,7 +110,8 @@ instances = [
                 [0,0,0,3,2,4,2],
                 [0,8,3,6,3,0,0],
                 ],
-                # 9x9
+
+                # ID5 9x9
                 [
                 [6,7,2,0,0,0,0,0,0],
                 [3,3,6,0,8,4,3,1,0],
@@ -118,6 +123,7 @@ instances = [
                 [1,1,0,0,0,0,5,0,0],
                 [4,0,0,0,4,6,0,13,2],
                 ],
+                # ID6 9x9
                 [
                 [0,0,0,0,0,0,0,0,0],
                 [4,0,8,4,0,0,0,0,0],
@@ -129,7 +135,8 @@ instances = [
                 [0,2,0,0,8,0,4,3,10],
                 [0,0,3,0,0,4,0,0,0],
                 ],
-                # 11x11
+
+                # ID 7 11x11
                 [
                 [0,0,0,0,0,3,0,0,0,0,0],
                 [0,0,11,2,0,0,9,3,0,0,3],
@@ -143,6 +150,7 @@ instances = [
                 [0,3,4,0,7,0,0,7,0,0,0],
                 [4,2,0,4,0,3,0,0,5,7,0],
                 ],
+                 # ID 8 11x11
                 [
                 [1,0,0,0,0,0,0,0,0,0,0],
                 [0,0,0,0,0,0,0,0,0,0,0],
@@ -156,7 +164,8 @@ instances = [
                 [4,1,0,0,0,0,0,0,0,0,0],
                 [0,0,0,0,0,0,0,0,0,0,0],
                 ],
-                #13x13
+
+                # ID 9 13x13
                 [
                 [2,4,0,0,6,7,3,4,0,0,3,0,1],
                 [0,0,2,0,3,0,0,6,0,0,8,11,3],
@@ -172,6 +181,7 @@ instances = [
                 [0,0,0,0,1,4,3,4,0,0,0,3,11],
                 [0,0,4,7,7,0,0,2,0,2,5,0,1],
                 ],
+                 # ID 10 13x13
                 [
                 [0,0,1,4,0,0,9,0,0,0,12,0,1],
                 [0,0,0,0,0,0,0,0,0,1,0,0,0],
@@ -187,7 +197,8 @@ instances = [
                 [2,0,0,0,0,3,3,0,0,0,0,0,10],
                 [0,0,0,0,0,0,0,0,0,4,0,0,0],
                 ],
-                # 15x13
+
+                #ID 11 15x13
                 [
                 [ 0,0,0,4,0,0,0,6,0,0,0,0,2,2,0],
                 [ 0,2,12,0,3,0,0,0,0,26,0,0,0,0,4 ],
@@ -203,6 +214,7 @@ instances = [
                 [ 0,0,5,0,6,0,0,0,0,0,8,0,0,0,0 ],
                 [ 0,4,0,0,0,0,0,0,1,2,3,0,0,0,0 ],
                 ],
+                # ID 12 15x13
                 [
                 [0,0,0,0,0,0,0,10,3,0,0,0,0,2,0],
                 [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
@@ -218,7 +230,7 @@ instances = [
                 [8,0,0,0,0,4,0,0,0,0,0,4,2,0,4],
                 [0,0,0,0,0,0,0,0,0,0,0,0,0,8,1],
                 ],
-                #/ 17x13
+                # ID 13 17x13
                 [
                 [0,0,0,3,0,0,0,0,5,0,0,0,0,0,0,0,0],
                 [0,0,0,0,3,0,0,0,4,2,0,3,0,0,0,0,0],
@@ -234,7 +246,7 @@ instances = [
                 [0,3,4,0,3,4,0,10,0,0,0,0,5,5,8,4,4],
                 [8,0,0,0,0,0,17,0,0,10,0,2,0,0,2,0,0],
                 ],
-
+                # ID 14 17x13
                 [
                 [0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0,0],
                 [0,0,0,0,0,0,0,0,0,0,0,0,1,4,0,0,0],
@@ -250,7 +262,8 @@ instances = [
                 [4,8,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0],
                 [4,0,0,0,0,0,0,0,0,0,0,0,3,0,0,6,3],
                 ],
-                # 19x13
+
+                # ID 15 19x13
                 [
                 [0,0,0,0,4,0,0,4,0,0,8,0,6,0,0,0,0,0,4],
                 [0,0,0,0,0,2,0,6,0,0,0,0,0,0,0,0,0,3,1],
@@ -266,6 +279,7 @@ instances = [
                 [0,0,2,0,3,22,0,0,0,0,0,2,7,0,0,0,0,0,1],
                 [0,9,0,0,6,0,0,0,0,0,0,0,0,0,5,1,4,0,8],
                 ],
+                # ID 16 19x13
                 [
                 [0,0,0,0,0,0,0,3,0,0,0,2,0,4,0,0,0,0,0],
                 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0],
@@ -281,7 +295,8 @@ instances = [
                 [3,0,11,0,0,0,0,0,0,0,0,0,0,3,0,7,0,0,0],
                 [0,0,0,0,0,2,0,0,0,4,0,0,0,0,0,0,0,1,0],
                 ],
-                # 19x15
+
+                # ID 17 19x15
                 [
                 [0,0,0,0,0,0,0,0,16,1,0,5,0,3,0,0,0,4,0],
                 [0,2,3,0,0,5,0,0,0,0,0,0,0,6,0,0,0,1,0],
@@ -299,6 +314,7 @@ instances = [
                 [0,0,0,0,7,2,0,0,1,0,0,0,0,0,0,11,0,30,0],
                 [1,0,0,0,0,0,0,7,0,0,0,3,0,0,0,0,0,0,0],
                 ],
+                # ID 18 19x15
                 [
                 [0,0,0,0,14,0,0,0,0,0,0,0,3,7,0,0,0,0,0],
                 [0,2,5,7,2,0,0,0,6,0,0,0,1,0,0,3,0,0,1],
@@ -316,7 +332,8 @@ instances = [
                 [0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,7,0],
                 [0,0,0,0,0,0,4,0,0,0,2,0,0,0,0,0,2,0,3],
                 ],
-                # 19x17
+
+                # ID 19 19x17
                 [
                 [0,2,0,0,0,4,4,0,0,4,0,0,1,6,0,1,4,0,0],
                 [1,0,0,2,0,0,0,0,0,0,0,0,9,3,0,0,0,0,0],
@@ -336,6 +353,7 @@ instances = [
                 [0,0,1,0,4,8,0,0,0,0,0,6,0,0,0,6,0,0,0],
                 [0,0,0,0,0,0,0,2,0,2,0,0,0,7,0,0,0,0,2],
                 ],
+                # ID 20 19x17
                 [
                 [3,4,0,0,3,0,0,0,0,6,0,4,4,0,0,0,4,0,0],
                 [4,0,0,5,0,0,0,0,7,3,0,0,0,0,0,0,0,0,0],
@@ -362,17 +380,21 @@ instances = [
 
 
 
+#
 # Criação de uma função para processar múltiplas instâncias de matrizes
-def process_graph_instances(instances):
-    for idx, matrices in enumerate(instances):
-        print(f"Processing instance [idx + 1] with size [len(matrices[0])]x[len(matrices[0])]")
-        graph = Graph(len(matrices[0]))
-        graph.load_from_matrix(matrices[0])
+# Criação de uma função para processar múltiplas instâncias de matrizes
+def process_graph_instancias(instancias):
+    for idx, matrix in enumerate(instancias):
+        print(f"Processing instance {idx + 1} with size {len(matrix)}x{len(matrix[0])}")
+        graph = Graph(len(matrix))
+        graph.load_from_matrix(matrix)
         start = graph.nodes[0]
-        goal = graph.nodes[len(matrices[0]) - 1]
+        goal = graph.nodes[len(matrix) - 1]
         a_star = AStarSearch(graph, start, goal)
         a_star.search()
         print()
 
 
-process_graph_instances(instances)
+process_graph_instancias(instancias)
+
+
