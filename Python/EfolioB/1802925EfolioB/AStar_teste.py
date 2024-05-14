@@ -326,9 +326,11 @@ def calcular_custo_deslocacao(estacoes, matriz):
     num_familias = 0
     for i in range(n):
         for j in range(m):
-            if matriz[i][j] > 0:
-                custo_total += matriz[i][j] * custo_dist[min(distancias[i][j], max_dist)]
-                num_familias += matriz[i][j]
+            for k in range(len(matriz[i][j])):
+                for l in range(len(matriz[i][j][k])):  # Add this loop
+                    if matriz[i][j][k][l] > 0:
+                        custo_total += matriz[i][j][k][l] * custo_dist[min(distancias[i][j], max_dist)]
+                        num_familias += matriz[i][j][k][l]
 
     custo_medio = custo_total / num_familias if num_familias > 0 else 0
     return custo_medio
