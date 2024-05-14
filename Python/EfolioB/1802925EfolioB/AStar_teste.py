@@ -1,6 +1,9 @@
-
 import heapq
 import numpy as np
+
+# Custos de deslocação
+custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
+max_dist = 6
 
 # Definição da matriz de zonas
 matriz = [
@@ -304,12 +307,7 @@ matriz = [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 6, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0],
     ],
-],
-
-
-# Custos de deslocação
-custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
-max_dist = 6
+]
 
 # Função para calcular o custo de deslocação
 def calcular_custo_deslocacao(estacoes, matriz):
@@ -326,11 +324,9 @@ def calcular_custo_deslocacao(estacoes, matriz):
     num_familias = 0
     for i in range(n):
         for j in range(m):
-            for k in range(len(matriz[i][j])):
-                for l in range(len(matriz[i][j][k])):  # Add this loop
-                    if matriz[i][j][k][l] > 0:
-                        custo_total += matriz[i][j][k][l] * custo_dist[min(distancias[i][j], max_dist)]
-                        num_familias += matriz[i][j][k][l]
+            if matriz[i][j] > 0:
+                custo_total += matriz[i][j] * custo_dist[min(distancias[i][j], max_dist)]
+                num_familias += matriz[i][j]
 
     custo_medio = custo_total / num_familias if num_familias > 0 else 0
     return custo_medio
@@ -341,7 +337,8 @@ def a_star(matriz):
 
     # Função heurística
     def heuristica(estacoes):
-        return len(estacoes) * 1000 + 100 * calcular_custo_deslocacao(estacoes, matriz)
+        custo_medio = calcular_custo_deslocacao(estacoes, matriz)
+        return len(estacoes) * 1000 + 100 * custo_medio
 
     # Estado inicial
     estacoes_iniciais = []
@@ -360,7 +357,7 @@ def a_star(matriz):
         # Verificar se a solução é válida
         custo_medio = calcular_custo_deslocacao(estacoes, matriz)
         if custo_medio < 3:
-            return estacoes, custo_atual
+            return estacoes, len(estacoes), custo_medio
 
         # Expandir nós vizinhos
         for i in range(n):
@@ -373,7 +370,16 @@ def a_star(matriz):
 
     return None
 
-# Executar o algoritmo
-resultado = a_star(matriz)
-print("Melhor localização das estações:", resultado[0])
-print("Custo da solução:", resultado[1])
+# Executar o algoritmo para todas as matrizes
+for idx, matriz_id in enumerate(matriz):
+    resultado = a_star(matriz_id)
+    if resultado:
+        print(f"-------------------------------------------")
+        print(f"Matriz ID {idx + 1}:")
+        print(f"Melhor localização das estações: {resultado[0]}")
+        print(f"Número de estações (A): {resultado[1]}")
+        print(f"Custo médio de deslocação (B): {resultado[2]}")
+        print(f"Custo da solução: {resultado[1] * 1000 + resultado[2] * 100}")
+        print(f"-------------------------------------------")
+    else:
+        print(f"Matriz ID {idx + 1}: Nenhuma solução encontrada")
