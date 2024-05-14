@@ -325,8 +325,8 @@ def calcular_custo_deslocacao(estacoes, matriz):
     custo_medio = custo_total / num_familias if num_familias > 0 else 0
     return custo_medio
 
-# Função heurística para abordagem construtiva
-def abordagem_construtiva(matriz):
+# Função heurística para abordagem melhorativa
+def abordagem_melhorativa(matriz):
     n, m = len(matriz), len(matriz[0])
     estacoes = []
 
@@ -339,17 +339,17 @@ def abordagem_construtiva(matriz):
     estacoes_selecionadas = estacoes[:max(1, len(estacoes) // 4)]  # Seleciona um quarto das estações iniciais
     return estacoes_selecionadas
 
-# Algoritmo A* com abordagem construtiva
+# Algoritmo A* com abordagem melhorativa
 def a_star(matriz, max_time=60000, max_evaluations=100000):
-    n, m = len(matriz), len(matriz[0])
+    n, m = len(matriz[0]), len(matriz[0])
 
     # Função heurística
     def heuristica(estacoes):
         custo_medio = calcular_custo_deslocacao(estacoes, matriz)
         return len(estacoes) * 1000 + 100 * custo_medio
 
-    # Estado inicial com abordagem construtiva
-    estacoes_iniciais = abordagem_construtiva(matriz)
+    # Estado inicial com abordagem melhorativa
+    estacoes_iniciais = abordagem_melhorativa(matriz)
     custo_inicial = heuristica(estacoes_iniciais)
     fronteira = [(custo_inicial, estacoes_iniciais)]
     visitados = set()

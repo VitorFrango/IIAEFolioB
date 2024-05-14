@@ -339,8 +339,8 @@ def abordagem_construtiva(matriz):
     estacoes_selecionadas = estacoes[:max(1, len(estacoes) // 4)]  # Seleciona um quarto das estações iniciais
     return estacoes_selecionadas
 
-# Algoritmo A* com abordagem construtiva
-def a_star(matriz, max_time=60000, max_evaluations=100000):
+# Algoritmo de Hill Climbing com Primeira Escolha
+def hill_climbing_primeira_escolha(matriz, max_time=60000, max_evaluations=100000):
     n, m = len(matriz), len(matriz[0])
 
     # Função heurística
@@ -351,52 +351,43 @@ def a_star(matriz, max_time=60000, max_evaluations=100000):
     # Estado inicial com abordagem construtiva
     estacoes_iniciais = abordagem_construtiva(matriz)
     custo_inicial = heuristica(estacoes_iniciais)
-    fronteira = [(custo_inicial, estacoes_iniciais)]
-    visitados = set()
+    melhor_custo = custo_inicial
+    melhor_estacoes = estacoes_iniciais
 
     num_visualizacoes = 0
     num_geracoes = 0
     start_time = time.time()
 
-    while fronteira:
-        custo_atual, estacoes = heapq.heappop(fronteira)
-        num_visualizacoes += 1
+    while True:
+        if num_geracoes >= max_evaluations or (time.time() - start_time) * 1000 >= max_time:
+            break
 
-        if (tuple(estacoes), custo_atual) in visitados:
-            continue
+        estacoes = melhor_estacoes.copy()
+        nova_estacao = (np.random.randint(n), np.random.randint(m))
+        if nova_estacao not in estacoes:
+            estacoes.append(nova_estacao)
+            novo_custo = heuristica(estacoes)
+            num_geracoes += 1
 
-        visitados.add((tuple(estacoes), custo_atual))
+            if novo_custo < melhor_custo:
+                melhor_custo = novo_custo
+                melhor_estacoes = estacoes
+                num_visualizacoes += 1
 
         # Verificar se a solução é válida
-        custo_medio = calcular_custo_deslocacao(estacoes, matriz)
+        custo_medio = calcular_custo_deslocacao(melhor_estacoes, matriz)
         if custo_medio < 3:
             end_time = time.time()
             tempo_execucao = (end_time - start_time) * 1000
-            return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_geracoes, tempo_execucao
-
-        # Expandir nós vizinhos
-        for i in range(n):
-            for j in range(m):
-                nova_estacao = (i, j)
-                if nova_estacao not in estacoes:
-                    novas_estacoes = estacoes + [nova_estacao]
-                    novo_custo = heuristica(novas_estacoes)
-                    heapq.heappush(fronteira, (novo_custo, novas_estacoes))
-                    num_geracoes += 1
-
-                    # Critérios de paragem
-                    if num_geracoes >= max_evaluations or (time.time() - start_time) * 1000 >= max_time:
-                        end_time = time.time()
-                        tempo_execucao = (end_time - start_time) * 1000
-                        return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_geracoes, tempo_execucao
+            return melhor_estacoes, len(melhor_estacoes), custo_medio, num_visualizacoes, num_geracoes, tempo_execucao
 
     end_time = time.time()
     tempo_execucao = (end_time - start_time) * 1000
-    return None, num_visualizacoes, num_geracoes, tempo_execucao
+    return melhor_estacoes, len(melhor_estacoes), calcular_custo_deslocacao(melhor_estacoes, matriz), num_visualizacoes, num_geracoes, tempo_execucao
 
 # Executar o algoritmo para todas as matrizes
 for idx, matriz_id in enumerate(matriz):
-    resultado = a_star(matriz_id)
+    resultado = hill_climbing_primeira_escolha(matriz_id)
     if resultado and resultado[0] is not None:
         print(f"-------------------------------------------")
         print(f"Instancia ID {idx + 1}:")
