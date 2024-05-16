@@ -332,9 +332,10 @@ def calcular_custo_deslocacao(estacoes, matriz):
     return custo_medio
 
 # Função heurística
-def heuristica(estacoes, matriz):
+def heuristica(estacoes, matriz, peso_estacao=1000, peso_custo=100):
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
-    return len(estacoes) * 1000 + 100 * custo_medio
+    return len(estacoes) * peso_estacao + peso_custo * custo_medio
+
 
 
 # Função para encontrar a melhor posição para uma nova estação
@@ -367,9 +368,9 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
 
     num_avaliacoes = 0
     num_nos_gerados = 0
-    start_time = time.time()
+    start_time = time.perf_counter()
 
-    while fronteira and num_avaliacoes < max_evaluations and (time.time() - start_time) * 1000 < max_time:
+    while fronteira and num_avaliacoes < max_evaluations and (time.perf_counter() - start_time) * 1000 < max_time:
         custo_atual, estacoes = heapq.heappop(fronteira)
         num_avaliacoes += 1
 
@@ -377,29 +378,25 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
             continue
         visitados.add((tuple(estacoes), custo_atual))
 
-        # Verificar se a solução é válida
         custo_medio = calcular_custo_deslocacao(estacoes, matriz)
         if custo_medio < 3 and custo_atual < melhor_custo_solucao:
             melhor_solucao = estacoes
             melhor_custo_solucao = custo_atual
 
-        # Encontrar a melhor posição para adicionar uma nova estação
         melhor_posicao, melhor_custo = melhor_posicao_para_nova_estacao(estacoes, matriz)
         if melhor_posicao:
             novas_estacoes = estacoes + [melhor_posicao]
             heapq.heappush(fronteira, (melhor_custo, novas_estacoes))
             num_nos_gerados += 1
 
-    end_time = time.time()
+    end_time = time.perf_counter()
     tempo_execucao = (end_time - start_time) * 1000
 
-    # Se encontrou uma solução válida e o tempo de execução é inferior a 1 minuto, retorna a melhor solução encontrada
     if melhor_solucao and tempo_execucao <= 60000:
         custo_medio = calcular_custo_deslocacao(melhor_solucao, matriz)
         custo_da_solucao = len(melhor_solucao) * 1000 + 100 * custo_medio
         return melhor_solucao, num_avaliacoes, num_nos_gerados, tempo_execucao, custo_medio, custo_da_solucao
 
-    # Se não encontrou uma solução válida ou o tempo de execução é superior a 1 minuto, retorna None
     return None, num_avaliacoes, num_nos_gerados, tempo_execucao, None, None
 
 # Tabela de resultados
@@ -440,12 +437,9 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Custo: {resultado[5]:.0f}")
         print(f"Tempo: {resultado[3]:.2f} msec")
         print(f"-------------------------------------------")
-        print(f"Número de estações (A): {math.ceil(resultado[1])}")
+        print(f"Número de estações (A): {len(resultado[0])}")
         print(f"Custo médio de deslocação (B): {resultado[4]:.3f}")
         print(f"-------------------------------------------")
-        
-        
-       
 
         # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
