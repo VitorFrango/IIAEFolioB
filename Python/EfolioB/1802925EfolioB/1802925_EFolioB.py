@@ -5,6 +5,8 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from termcolor import colored
+
 # Custos de deslocação
 custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
 max_dist = 6
@@ -333,6 +335,7 @@ def heuristica(estacoes, matriz):
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
     return len(estacoes) * 1000 + 100 * custo_medio
 
+
 # Função para encontrar a melhor posição para uma nova estação
 def melhor_posicao_para_nova_estacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
@@ -351,7 +354,7 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
 
     return melhor_posicao, melhor_custo
 
-# Algoritmo A* com abordagem melhorativa
+
 # Algoritmo A* com abordagem melhorativa
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     estacoes = []
@@ -389,24 +392,25 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     end_time = time.time()
     tempo_execucao = (end_time - start_time) * 1000
 
-    # Se encontrou uma solução válida, retorna a melhor solução encontrada
-    if melhor_solucao:
+    # Se encontrou uma solução válida e o tempo de execução é inferior a 1 minuto, retorna a melhor solução encontrada
+    if melhor_solucao and tempo_execucao <= 60000:
         custo_medio = calcular_custo_deslocacao(melhor_solucao, matriz)
         custo_da_solucao = len(melhor_solucao) * 1000 + 100 * custo_medio
         return melhor_solucao, num_avaliacoes, num_nos_gerados, tempo_execucao, custo_medio, custo_da_solucao
 
-    # Se não encontrou uma solução válida, retorna None
+    # Se não encontrou uma solução válida ou o tempo de execução é superior a 1 minuto, retorna None
     return None, num_avaliacoes, num_nos_gerados, tempo_execucao, None, None
 
 # Tabela de resultados
 resultados = {
     "Instância": [],
     "Avaliações": [],
-    "Nós Gerados": [],
+    "Gerações": [],
     "Custo": [],
     "Tempo (msec)": [],
     "Melhor resultado": [],
 }
+
 
 # Executar o algoritmo para todas as matrizes
 for idx, matriz_id in enumerate(matriz):
@@ -424,32 +428,37 @@ for idx, matriz_id in enumerate(matriz):
             print(" ".join(linha))
 
         # Imprimir métricas da solução
+        print(f"-------------------------------------------")
+        print(f"Avaliações: {resultado[1]}")
+        print(f"Gerações: {resultado[2]}")
+        print(f"Custo: {resultado[5]:.0f}")
+        print(f"Tempo: {resultado[3]:.2f} msec")
+        print(f"-------------------------------------------")
         print(f"Número de estações (A): {math.ceil(resultado[1])}")
         print(f"Custo médio de deslocação (B): {resultado[4]:.3f}")
-        print(f"Número de avaliações: {resultado[1]}")
-        print(f"Nós Gerados: {resultado[2]}")
-        print(f"Tempo de execução: {resultado[3]:.2f} msec")
-        print(f"Custo da solução: {resultado[5]:.0f}")
         print(f"-------------------------------------------")
+        
+        
+       
 
         # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
-        resultados["Nós Gerados"].append(resultado[2])
+        resultados["Gerações"].append(resultado[2])
         resultados["Custo"].append(f"{resultado[4]:.3f}")
         resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
         resultados["Melhor resultado"].append(f"{resultado[5]:.0f}")
     else:
-        print(f"Instancia ID {idx + 1}: Nenhuma solução encontrada")
-        print(f"Número de avaliações: {resultado[1]}")
-        print(f"Nós Gerados: {resultado[2]}")
+        print(f"Instancia ID {idx + 1}: Nenhuma solução válida encontrada em 1 minuto")
+        print(f"Avaliações: {resultado[1]}")
+        print(f"Gerações: {resultado[2]}")
         print(f"Tempo de execução: {resultado[3]:.2f} msec")
         print(f"-------------------------------------------")
 
         # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
-        resultados["Nós Gerados"].append(resultado[2])
+        resultados["Gerações"].append(resultado[2])
         resultados["Custo"].append("N/A")
         resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
         resultados["Melhor resultado"].append("N/A")
@@ -475,7 +484,7 @@ the_table = ax.table(cellText=df.values,
                      loc='center')
 
 # constroi o cabeçalho da tabela
-header_labels = ['Instância', 'Avaliações', 'Nós Gerados', 'Custo', 'Tempo (msec)', 'Melhor resultado']
+header_labels = ['Instância', 'Avaliações', 'Gerações', 'Custo', 'Tempo (msec)', 'Melhor resultado']
 num_columns = len(df.columns)  # Get the number of columns in the DataFrame
 
 for i in range(min(num_columns, len(header_labels))):  # Ensure i does not exceed the number of columns
