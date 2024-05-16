@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from termcolor import colored
+from IPython.display import display, HTML
 
 # Custos de deslocação
 custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
@@ -425,7 +426,12 @@ for idx, matriz_id in enumerate(matriz):
         for x, y in resultado[0]:
             solucao_formatada[x][y] += "#"
         for linha in solucao_formatada:
-            print(" ".join(linha))
+            linha_colorida = []
+            for celula in linha:
+                if "#" in celula:
+                    celula = colored(celula, 'red')
+                linha_colorida.append(celula)
+            print(" ".join(linha_colorida))
 
         # Imprimir métricas da solução
         print(f"-------------------------------------------")
