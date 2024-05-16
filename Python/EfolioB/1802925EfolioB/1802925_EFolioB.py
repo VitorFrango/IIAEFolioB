@@ -305,8 +305,7 @@ matriz = [
     ],
 ]
 
-# Função para calcular o custo de deslocação
-# Função para calcular o custo de deslocação
+
 # Função para calcular o custo de deslocação
 def calcular_custo_deslocacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
@@ -448,11 +447,41 @@ for idx, matriz_id in enumerate(matriz):
 
 # Create a DataFrame from the results
 df = pd.DataFrame(resultados)
+df = df.set_index("Instância")
 
 # Plotting the table
 fig, ax = plt.subplots(figsize=(15, 8))
 ax.axis('tight')
 ax.axis('off')
-ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+
+# Constructing a multi-level header
+header = pd.MultiIndex.from_product([['Algoritmo 1 / configurações 1'], df.columns.tolist()])
+df.columns = header
+
+# Create the table
+the_table = ax.table(cellText=df.values,
+                     colLabels=df.columns.levels[1],
+                     rowLabels=df.index,
+                     cellLoc='center',
+                     loc='center')
+
+# Set the column headers
+header_labels = ['Instância', 'Avaliações', 'Gerações', 'Custo', 'Tempo (msec)', 'Melhor resultado']
+num_columns = len(df.columns)  # Get the number of columns in the DataFrame
+
+for i in range(min(num_columns, len(header_labels))):  # Ensure i does not exceed the number of columns
+    cell = the_table.get_celld()[(0, i)]
+    cell.get_text().set_text(header_labels[i])
+    cell.get_text().set_fontsize(12)
+    cell.get_text().set_fontweight('bold')
+    cell.get_text().set_ha('center')
+    cell.get_text().set_va('center')
+
+# Adjusting cell size and font size
+the_table.auto_set_font_size(False)
+the_table.set_fontsize(12)
+for key, cell in the_table.get_celld().items():
+    cell.set_height(0.065)
+    cell.set_width(0.2)
 
 plt.show()
