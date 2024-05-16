@@ -305,7 +305,6 @@ matriz = [
     ],
 ]
 
-
 # Função para calcular o custo de deslocação
 def calcular_custo_deslocacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
@@ -328,12 +327,12 @@ def calcular_custo_deslocacao(estacoes, matriz):
     custo_medio = custo_total / num_familias if num_familias > 0 else 0
     return custo_medio
 
-
 # Função heurística
 def heuristica(estacoes, matriz):
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
+    if custo_medio >= 3:
+        return float('inf')  # Discard solutions with average cost >= 3
     return len(estacoes) * 1000 + 100 * custo_medio
-
 
 # Função para encontrar a melhor posição para uma nova estação
 def melhor_posicao_para_nova_estacao(estacoes, matriz):
@@ -353,7 +352,6 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
 
     return melhor_posicao, melhor_custo
 
-
 # Algoritmo A* com abordagem melhorativa
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     estacoes = []
@@ -361,8 +359,8 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     fronteira = [(custo_inicial, estacoes)]
     visitados = set()
 
+    num_nos_gerados = 0
     num_visualizacoes = 0
-    num_geracoes = 0
     start_time = time.time()
 
     while fronteira:
@@ -379,31 +377,30 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
         if custo_medio < 3:
             end_time = time.time()
             tempo_execucao = (end_time - start_time) * 1000
-            return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_geracoes, tempo_execucao
+            return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_nos_gerados, tempo_execucao
 
         # Encontrar a melhor posição para adicionar uma nova estação
         melhor_posicao, melhor_custo = melhor_posicao_para_nova_estacao(estacoes, matriz)
         if melhor_posicao:
             novas_estacoes = estacoes + [melhor_posicao]
             heapq.heappush(fronteira, (melhor_custo, novas_estacoes))
-            num_geracoes += 1
+            num_nos_gerados += 1
 
         # Critérios de paragem
-        if num_geracoes >= max_evaluations or (time.time() - start_time) * 1000 >= max_time:
+        if num_nos_gerados >= max_evaluations or (time.time() - start_time) * 1000 >= max_time:
             end_time = time.time()
             tempo_execucao = (end_time - start_time) * 1000
-            return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_geracoes, tempo_execucao
+            return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_nos_gerados, tempo_execucao
 
     end_time = time.time()
     tempo_execucao = (end_time - start_time) * 1000
-    return None, num_visualizacoes, num_geracoes, tempo_execucao
-
+    return None, num_visualizacoes, num_nos_gerados, tempo_execucao
 
 # Tabela de resultados
 resultados = {
     "Instância": [],
     "Avaliações": [],
-    "Gerações": [],
+    "Nós Gerados": [],
     "Custo": [],
     "Tempo (msec)": [],
     "Melhor resultado": []
@@ -419,7 +416,7 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Número de estações (A): {math.ceil(resultado[1])}")
         print(f"Custo médio de deslocação (B): {math.ceil(resultado[2])}")
         print(f"Número de visualizações: {math.ceil(resultado[3])}")
-        print(f"Número de gerações: {math.ceil(resultado[4])}")
+        print(f"Nós Gerados: {math.ceil(resultado[4])}")
         print(f"Tempo de execução: {math.ceil(resultado[5])} msec")
         print(f"Custo da solução: {math.ceil(resultado[1] * 1000 + resultado[2] * 100)}")
         print(f"-------------------------------------------")
@@ -427,20 +424,23 @@ for idx, matriz_id in enumerate(matriz):
         # Add results to the table
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[3])
-        resultados["Gerações"].append(resultado[4])
+        resultados["Nós Gerados"].append(resultado[4])
         resultados["Custo"].append(math.ceil(resultado[2]))
         resultados["Tempo (msec)"].append(math.ceil(resultado[5]))
         resultados["Melhor resultado"].append(math.ceil(resultado[1] * 1000 + resultado[2] * 100))
     else:
+        print(f"-------------------------------------------")
+        print(f"-------------------------------------------")
+        print(" SOLUÇÕES NÃO ENCONTRADAS ".center(40, "-")) # Print a centered message
         print(f"Instancia ID {idx + 1}: Nenhuma solução encontrada")
         print(f"Número de visualizações: {math.ceil(resultado[1])}")
-        print(f"Número de gerações: {math.ceil(resultado[2])}")
+        print(f"Nós Gerados: {math.ceil(resultado[2])}")
         print(f"Tempo de execução: {math.ceil(resultado[3])} msec")
 
         # Add results to the table
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
-        resultados["Gerações"].append(resultado[2])
+        resultados["Nós Gerados"].append(resultado[2])
         resultados["Custo"].append("N/A")
         resultados["Tempo (msec)"].append(resultado[3])
         resultados["Melhor resultado"].append("N/A")
@@ -466,7 +466,7 @@ the_table = ax.table(cellText=df.values,
                      loc='center')
 
 # Set the column headers
-header_labels = ['Instância', 'Avaliações', 'Gerações', 'Custo', 'Tempo (msec)', 'Melhor resultado']
+header_labels = ['Instância', 'Avaliações', 'Nós Gerados', 'Custo', 'Tempo (msec)', 'Melhor resultado']
 num_columns = len(df.columns)  # Get the number of columns in the DataFrame
 
 for i in range(min(num_columns, len(header_labels))):  # Ensure i does not exceed the number of columns
