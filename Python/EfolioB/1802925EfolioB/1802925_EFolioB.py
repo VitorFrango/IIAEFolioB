@@ -305,6 +305,7 @@ matriz = [
     ],
 ]
 
+
 # Função para calcular o custo de deslocação
 def calcular_custo_deslocacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
@@ -330,8 +331,6 @@ def calcular_custo_deslocacao(estacoes, matriz):
 # Função heurística
 def heuristica(estacoes, matriz):
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
-    if custo_medio >= 3:
-        return float('inf')  # Discard solutions with average cost >= 3
     return len(estacoes) * 1000 + 100 * custo_medio
 
 # Função para encontrar a melhor posição para uma nova estação
@@ -353,31 +352,32 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
     return melhor_posicao, melhor_custo
 
 # Algoritmo A* com abordagem melhorativa
+# Algoritmo A* com abordagem melhorativa
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     estacoes = []
     custo_inicial = heuristica(estacoes, matriz)
     fronteira = [(custo_inicial, estacoes)]
     visitados = set()
+    melhor_solucao = None
+    melhor_custo_solucao = float('inf')
 
+    num_avaliacoes = 0
     num_nos_gerados = 0
-    num_visualizacoes = 0
     start_time = time.time()
 
-    while fronteira:
+    while fronteira and num_avaliacoes < max_evaluations and (time.time() - start_time) * 1000 < max_time:
         custo_atual, estacoes = heapq.heappop(fronteira)
-        num_visualizacoes += 1
+        num_avaliacoes += 1
 
         if (tuple(estacoes), custo_atual) in visitados:
             continue
-
         visitados.add((tuple(estacoes), custo_atual))
 
         # Verificar se a solução é válida
         custo_medio = calcular_custo_deslocacao(estacoes, matriz)
-        if custo_medio < 3:
-            end_time = time.time()
-            tempo_execucao = (end_time - start_time) * 1000
-            return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_nos_gerados, tempo_execucao
+        if custo_medio < 3 and custo_atual < melhor_custo_solucao:
+            melhor_solucao = estacoes
+            melhor_custo_solucao = custo_atual
 
         # Encontrar a melhor posição para adicionar uma nova estação
         melhor_posicao, melhor_custo = melhor_posicao_para_nova_estacao(estacoes, matriz)
@@ -386,15 +386,17 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
             heapq.heappush(fronteira, (melhor_custo, novas_estacoes))
             num_nos_gerados += 1
 
-        # Critérios de paragem
-        if num_nos_gerados >= max_evaluations or (time.time() - start_time) * 1000 >= max_time:
-            end_time = time.time()
-            tempo_execucao = (end_time - start_time) * 1000
-            return estacoes, len(estacoes), custo_medio, num_visualizacoes, num_nos_gerados, tempo_execucao
-
     end_time = time.time()
     tempo_execucao = (end_time - start_time) * 1000
-    return None, num_visualizacoes, num_nos_gerados, tempo_execucao
+
+    # Se encontrou uma solução válida, retorna a melhor solução encontrada
+    if melhor_solucao:
+        custo_medio = calcular_custo_deslocacao(melhor_solucao, matriz)
+        custo_da_solucao = len(melhor_solucao) * 1000 + 100 * custo_medio
+        return melhor_solucao, num_avaliacoes, num_nos_gerados, tempo_execucao, custo_medio, custo_da_solucao
+
+    # Se não encontrou uma solução válida, retorna None
+    return None, num_avaliacoes, num_nos_gerados, tempo_execucao, None, None
 
 # Tabela de resultados
 resultados = {
@@ -403,7 +405,7 @@ resultados = {
     "Nós Gerados": [],
     "Custo": [],
     "Tempo (msec)": [],
-    "Melhor resultado": []
+    "Melhor resultado": [],
 }
 
 # Executar o algoritmo para todas as matrizes
@@ -412,60 +414,67 @@ for idx, matriz_id in enumerate(matriz):
     if resultado and resultado[0] is not None:
         print(f"-------------------------------------------")
         print(f"Instancia ID {idx + 1}:")
-        print(f"Melhor localização das estações: {resultado[0]}")
+
+        # Apresentar a solução no formato desejado
+        n, m = len(matriz_id), len(matriz_id[0])
+        solucao_formatada = np.array(matriz_id).astype(str)
+        for x, y in resultado[0]:
+            solucao_formatada[x][y] += "#"
+        for linha in solucao_formatada:
+            print(" ".join(linha))
+
+        # Imprimir métricas da solução
         print(f"Número de estações (A): {math.ceil(resultado[1])}")
-        print(f"Custo médio de deslocação (B): {math.ceil(resultado[2])}")
-        print(f"Número de visualizações: {math.ceil(resultado[3])}")
-        print(f"Nós Gerados: {math.ceil(resultado[4])}")
-        print(f"Tempo de execução: {math.ceil(resultado[5])} msec")
-        print(f"Custo da solução: {math.ceil(resultado[1] * 1000 + resultado[2] * 100)}")
+        print(f"Custo médio de deslocação (B): {resultado[4]:.3f}")
+        print(f"Número de avaliações: {resultado[1]}")
+        print(f"Nós Gerados: {resultado[2]}")
+        print(f"Tempo de execução: {resultado[3]:.2f} msec")
+        print(f"Custo da solução: {resultado[5]:.0f}")
         print(f"-------------------------------------------")
 
-        # Add results to the table
+        # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
-        resultados["Avaliações"].append(resultado[3])
-        resultados["Nós Gerados"].append(resultado[4])
-        resultados["Custo"].append(math.ceil(resultado[2]))
-        resultados["Tempo (msec)"].append(math.ceil(resultado[5]))
-        resultados["Melhor resultado"].append(math.ceil(resultado[1] * 1000 + resultado[2] * 100))
+        resultados["Avaliações"].append(resultado[1])
+        resultados["Nós Gerados"].append(resultado[2])
+        resultados["Custo"].append(f"{resultado[4]:.3f}")
+        resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
+        resultados["Melhor resultado"].append(f"{resultado[5]:.0f}")
     else:
-        print(f"-------------------------------------------")
-        print(f"-------------------------------------------")
-        print(" SOLUÇÕES NÃO ENCONTRADAS ".center(40, "-")) # Print a centered message
         print(f"Instancia ID {idx + 1}: Nenhuma solução encontrada")
-        print(f"Número de visualizações: {math.ceil(resultado[1])}")
-        print(f"Nós Gerados: {math.ceil(resultado[2])}")
-        print(f"Tempo de execução: {math.ceil(resultado[3])} msec")
+        print(f"Número de avaliações: {resultado[1]}")
+        print(f"Nós Gerados: {resultado[2]}")
+        print(f"Tempo de execução: {resultado[3]:.2f} msec")
+        print(f"-------------------------------------------")
 
-        # Add results to the table
+        # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
         resultados["Nós Gerados"].append(resultado[2])
         resultados["Custo"].append("N/A")
-        resultados["Tempo (msec)"].append(resultado[3])
+        resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
         resultados["Melhor resultado"].append("N/A")
 
-# Create a DataFrame from the results
+# criar um DataFrame com os resultados e mostrar a tabela
 df = pd.DataFrame(resultados)
 df = df.set_index("Instância")
 
-# Plotting the table
+# plotar a tabela com os resultados
 fig, ax = plt.subplots(figsize=(15, 8))
 ax.axis('tight')
 ax.axis('off')
 
-# Constructing a multi-level header
+# constroi o cabeçalho da tabela
 header = pd.MultiIndex.from_product([['Algoritmo 1 / configurações 1'], df.columns.tolist()])
 df.columns = header
 
-# Create the table
+# cria a tabela
 the_table = ax.table(cellText=df.values,
                      colLabels=df.columns.levels[1],
                      rowLabels=df.index,
                      cellLoc='center',
                      loc='center')
 
-# Set the column headers
+# constroi o cabeçalho da tabela
 header_labels = ['Instância', 'Avaliações', 'Nós Gerados', 'Custo', 'Tempo (msec)', 'Melhor resultado']
 num_columns = len(df.columns)  # Get the number of columns in the DataFrame
 
@@ -477,7 +486,7 @@ for i in range(min(num_columns, len(header_labels))):  # Ensure i does not excee
     cell.get_text().set_ha('center')
     cell.get_text().set_va('center')
 
-# Adjusting cell size and font size
+# ajusta o tamanho das células
 the_table.auto_set_font_size(False)
 the_table.set_fontsize(12)
 for key, cell in the_table.get_celld().items():
