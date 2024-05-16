@@ -2,6 +2,8 @@ import heapq
 import numpy as np
 import time
 import math
+import matplotlib.pyplot as plt
+import pandas as pd
 
 # Custos de deslocação
 custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
@@ -304,6 +306,8 @@ matriz = [
 ]
 
 # Função para calcular o custo de deslocação
+# Função para calcular o custo de deslocação
+# Função para calcular o custo de deslocação
 def calcular_custo_deslocacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
     distancias = np.full((n, m), np.inf)
@@ -325,10 +329,12 @@ def calcular_custo_deslocacao(estacoes, matriz):
     custo_medio = custo_total / num_familias if num_familias > 0 else 0
     return custo_medio
 
+
 # Função heurística
 def heuristica(estacoes, matriz):
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
     return len(estacoes) * 1000 + 100 * custo_medio
+
 
 # Função para encontrar a melhor posição para uma nova estação
 def melhor_posicao_para_nova_estacao(estacoes, matriz):
@@ -347,6 +353,7 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
                     melhor_posicao = nova_estacao
 
     return melhor_posicao, melhor_custo
+
 
 # Algoritmo A* com abordagem melhorativa
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
@@ -392,6 +399,17 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     tempo_execucao = (end_time - start_time) * 1000
     return None, num_visualizacoes, num_geracoes, tempo_execucao
 
+
+# Tabela de resultados
+resultados = {
+    "Instância": [],
+    "Avaliações": [],
+    "Gerações": [],
+    "Custo": [],
+    "Tempo (msec)": [],
+    "Melhor resultado": []
+}
+
 # Executar o algoritmo para todas as matrizes
 for idx, matriz_id in enumerate(matriz):
     resultado = a_star_melhorativo(matriz_id)
@@ -406,8 +424,35 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Tempo de execução: {math.ceil(resultado[5])} msec")
         print(f"Custo da solução: {math.ceil(resultado[1] * 1000 + resultado[2] * 100)}")
         print(f"-------------------------------------------")
+
+        # Add results to the table
+        resultados["Instância"].append(idx + 1)
+        resultados["Avaliações"].append(resultado[3])
+        resultados["Gerações"].append(resultado[4])
+        resultados["Custo"].append(math.ceil(resultado[2]))
+        resultados["Tempo (msec)"].append(math.ceil(resultado[5]))
+        resultados["Melhor resultado"].append(math.ceil(resultado[1] * 1000 + resultado[2] * 100))
     else:
         print(f"Instancia ID {idx + 1}: Nenhuma solução encontrada")
         print(f"Número de visualizações: {math.ceil(resultado[1])}")
         print(f"Número de gerações: {math.ceil(resultado[2])}")
         print(f"Tempo de execução: {math.ceil(resultado[3])} msec")
+
+        # Add results to the table
+        resultados["Instância"].append(idx + 1)
+        resultados["Avaliações"].append(resultado[1])
+        resultados["Gerações"].append(resultado[2])
+        resultados["Custo"].append("N/A")
+        resultados["Tempo (msec)"].append(resultado[3])
+        resultados["Melhor resultado"].append("N/A")
+
+# Create a DataFrame from the results
+df = pd.DataFrame(resultados)
+
+# Plotting the table
+fig, ax = plt.subplots(figsize=(15, 8))
+ax.axis('tight')
+ax.axis('off')
+ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+
+plt.show()
