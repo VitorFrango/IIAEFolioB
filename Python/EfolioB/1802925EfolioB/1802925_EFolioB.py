@@ -309,7 +309,15 @@ matriz = [
 ]
 
 
-# Função para calcular o custo de deslocação
+
+"""
+    Calculo do custo médio de deslocação das famílias até as estações
+    Args:
+        estacoes: Lista de tuplas (x, y) representando as coordenadas das estações.
+        matriz: Matriz de zonas com o número de famílias em cada posição.
+    Returns:
+        O custo médio de deslocação.
+    """
 def calcular_custo_deslocacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
     distancias = np.full((n, m), np.inf)
@@ -331,14 +339,30 @@ def calcular_custo_deslocacao(estacoes, matriz):
     custo_medio = custo_total / num_familias if num_familias > 0 else 0
     return custo_medio
 
-# Função heurística
+"""
+    Calcula uma estimativa do custo de uma solução (combinação de estações).
+    Args:
+        estacoes: Lista de tuplas (x, y) representando as coordenadas das estações.
+        matriz: Matriz de zonas com o número de famílias em cada posição.
+        peso_estacao: Peso atribuído ao número de estações na heurística.
+        peso_custo: Peso atribuído ao custo médio de deslocação na heurística.
+    Returns:
+        A estimativa do custo da solução.
+    """
 def heuristica(estacoes, matriz, peso_estacao=1000, peso_custo=100):
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
     return len(estacoes) * peso_estacao + peso_custo * custo_medio
 
 
 
-# Função para encontrar a melhor posição para uma nova estação
+"""
+    Encontra a melhor posição para adicionar uma nova estação, minimizando o custo.
+    Args:
+        estacoes: Lista de tuplas (x, y) representando as coordenadas das estações.
+        matriz: Matriz de zonas com o número de famílias em cada posição.
+    Returns:
+        Uma tupla contendo a melhor posição (x, y) e o custo resultante.
+    """
 def melhor_posicao_para_nova_estacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
     melhor_custo = float('inf')
@@ -357,7 +381,16 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
     return melhor_posicao, melhor_custo
 
 
-# Algoritmo A* com abordagem melhorativa com limite de tempo e avaliações
+"""
+    Executa o algoritmo A* melhortivo para encontrar a melhor combinação de estações.
+    Args:
+        matriz: Matriz de zonas com o número de famílias em cada posição.
+        max_time: Tempo máximo de execução em milissegundos.
+        max_evaluations: Número máximo de avaliações de soluções.
+    Returns:
+        Uma tupla contendo a melhor solução (lista de estações), número de avaliações,
+        número de nós gerados, tempo de execução, custo médio e custo da solução.
+    """
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     estacoes = []
     custo_inicial = heuristica(estacoes, matriz)
