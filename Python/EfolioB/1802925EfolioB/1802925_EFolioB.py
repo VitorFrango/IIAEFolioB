@@ -1,11 +1,9 @@
 import heapq
 import numpy as np
 import time
-import math
 import matplotlib.pyplot as plt
 import pandas as pd
 from termcolor import colored
-from IPython.display import display, HTML
 
 # Definição dos custos de deslocação
 custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
@@ -384,6 +382,7 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
 
     return None, num_avaliacoes, num_nos_gerados, tempo_execucao, None, None
 
+# Tabela de resultados
 resultados = {
     "Instância": [],
     "Avaliações": [],
@@ -393,17 +392,21 @@ resultados = {
     "Melhor resultado": [],
 }
 
+# Dicionário para armazenar as melhores soluções
 melhores_solucoes = {}
 
+# Executar o algoritmo para todas as matrizes
 for idx, matriz_id in enumerate(matriz):
     resultado = a_star_melhorativo(matriz_id)
     if resultado and resultado[0] is not None:
+        # Armazenar a melhor solução
         if idx + 1 not in melhores_solucoes or resultado[5] < melhores_solucoes[idx + 1][5]:
             melhores_solucoes[idx + 1] = resultado
 
         print(f"-------------------------------------------")
         print(f"Instancia ID {idx + 1}:")
 
+        # Apresentar a solução no formato desejado
         n, m = len(matriz_id), len(matriz_id[0])
         solucao_formatada = np.array(matriz_id).astype(str)
         for x, y in resultado[0]:
@@ -416,6 +419,7 @@ for idx, matriz_id in enumerate(matriz):
                 linha_colorida.append(celula)
             print(" ".join(linha_colorida))
 
+        # Imprimir métricas da solução
         print(f"-------------------------------------------")
         print(f"Avaliações: {resultado[1]}")
         print(f"Gerações: {resultado[2]}")
@@ -426,6 +430,7 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Custo médio de deslocação (B): {resultado[4]:.3f}")
         print(f"-------------------------------------------")
 
+        # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
         resultados["Gerações"].append(resultado[2])
@@ -439,6 +444,7 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Tempo de execução: {resultado[3]:.2f} msec")
         print(f"-------------------------------------------")
 
+        # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
         resultados["Gerações"].append(resultado[2])
@@ -446,9 +452,10 @@ for idx, matriz_id in enumerate(matriz):
         resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
         resultados["Melhor resultado"].append("N/A")
 
+# Apresentar as melhores soluções válidas encontradas em menos de 1 minuto
 print("\nMelhores Soluções:")
 for instancia, resultado in melhores_solucoes.items():
-    if resultado[3] <= 60000:
+    if resultado[3] <= 60000:  # Verificar se a solução foi encontrada em menos de 1 minuto
         print(f"\nInstancia ID {instancia}:")
         n, m = len(matriz[instancia - 1]), len(matriz[instancia - 1][0])
         solucao_formatada = np.array(matriz[instancia - 1]).astype(str)
@@ -463,26 +470,31 @@ for instancia, resultado in melhores_solucoes.items():
             print(" ".join(linha_colorida))
         print(f"Custo da solução: {resultado[5]:.0f}")
 
+# Criar um DataFrame com os resultados e mostrar a tabela
 df = pd.DataFrame(resultados)
 df = df.set_index("Instância")
 
+# Plotar a tabela com os resultados
 fig, ax = plt.subplots(figsize=(15, 8))
 ax.axis('tight')
 ax.axis('off')
 
+# Construir o cabeçalho da tabela
 header = pd.MultiIndex.from_product([['Algoritmo 1 / configurações 1'], df.columns.tolist()])
 df.columns = header
 
+# Criar a tabela
 the_table = ax.table(cellText=df.values,
                      colLabels=df.columns.levels[1],
                      rowLabels=df.index,
                      cellLoc='center',
                      loc='center')
 
+# Construir o cabeçalho da tabela
 header_labels = ['Instância', 'Avaliações', 'Gerações', 'Custo', 'Tempo (msec)', 'Melhor resultado']
-num_columns = len(df.columns)
+num_columns = len(df.columns)  # Número de colunas no DataFrame
 
-for i in range(min(num_columns, len(header_labels))):
+for i in range(min(num_columns, len(header_labels))):  # Garantir que i não exceda o número de colunas
     cell = the_table.get_celld()[(0, i)]
     cell.get_text().set_text(header_labels[i])
     cell.get_text().set_fontsize(12)
@@ -490,6 +502,7 @@ for i in range(min(num_columns, len(header_labels))):
     cell.get_text().set_ha('center')
     cell.get_text().set_va('center')
 
+# Ajustar o tamanho das células
 the_table.auto_set_font_size(False)
 the_table.set_fontsize(12)
 for key, cell in the_table.get_celld().items():
