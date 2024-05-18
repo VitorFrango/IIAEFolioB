@@ -1,9 +1,18 @@
+
+"""
+    EfolioB - Introdução à Inteligência Artificial
+    Implementação do algoritmo A* nelhorativo para resolução de problemas de caminho mínimo
+    Vitor Manuel Frango
+    1802925
+"""
+
 import heapq
 import numpy as np
 import time
 import matplotlib.pyplot as plt
 import pandas as pd
 from termcolor import colored
+
 
 # Definição dos custos de deslocação
 custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
@@ -305,64 +314,55 @@ matriz = [
     ],
 ]
 
-
 def calcular_custo_deslocacao(estacoes, matriz):
     """
-    Calcula o custo médio de deslocação das famílias até as estações.
-
+    Calcula o custo médio de deslocação
     Args:
         estacoes (list of tuple): Lista de coordenadas das estações.
         matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
-
     Returns:
         float: O custo médio de deslocação.
     """
     n, m = len(matriz), len(matriz[0])
     distancias = np.full((n, m), np.inf)
 
-    # Calcula a distância mínima de cada célula para qualquer estação
     for (ex, ey) in estacoes:
         for i in range(n):
             for j in range(m):
                 dist = max(abs(ex - i), abs(ey - j))
-                distancias[i][j] = min(distancias[i][j], dist)
+                distancias[i][j] = min(distancias[i][j], dist) # Distância mínima a uma estação
 
-    # Calcula o custo total e o número de famílias
-    custo_total, num_familias = 0, 0
+    custo_total = 0
+    num_familias = 0
     for i in range(n):
         for j in range(m):
             if matriz[i][j] > 0:
+                # Custo de deslocação
                 custo_total += matriz[i][j] * custo_dist[min(distancias[i][j], max_dist)]
                 num_familias += matriz[i][j]
 
     return custo_total / num_familias if num_familias > 0 else 0
 
-
 def heuristica(estacoes, matriz, peso_estacao=1000, peso_custo=100):
     """
     Calcula uma estimativa do custo de uma solução (combinação de estações).
-
     Args:
         estacoes (list of tuple): Lista de coordenadas das estações.
         matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
         peso_estacao (int): Peso atribuído ao número de estações na heurística.
         peso_custo (int): Peso atribuído ao custo médio de deslocação na heurística.
-
     Returns:
         float: A estimativa do custo da solução.
     """
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
     return len(estacoes) * peso_estacao + peso_custo * custo_medio
 
-
 def melhor_posicao_para_nova_estacao(estacoes, matriz):
     """
     Encontra a melhor posição para adicionar uma nova estação, minimizando o custo.
-
     Args:
         estacoes (list of tuple): Lista de coordenadas das estações.
         matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
-
     Returns:
         tuple: A melhor posição (x, y) e o custo resultante.
     """
@@ -370,7 +370,7 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
     melhor_custo = float('inf')
     melhor_posicao = None
 
-    # Avalia todas as posições possíveis para uma nova estação
+    # Verificar todas as posições da matriz
     for i in range(n):
         for j in range(m):
             if (i, j) not in estacoes:
@@ -382,16 +382,13 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
 
     return melhor_posicao, melhor_custo
 
-
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     """
     Executa o algoritmo A* melhorativo para encontrar a melhor combinação de estações.
-
     Args:
         matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
         max_time (int): Tempo máximo de execução em milissegundos.
         max_evaluations (int): Número máximo de avaliações de soluções.
-
     Returns:
         tuple: A melhor solução, número de avaliações, número de nós gerados, tempo de execução, custo médio e custo da solução.
     """
@@ -402,26 +399,23 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     melhor_solucao = None
     melhor_custo_solucao = float('inf')
 
-    num_avaliacoes, num_nos_gerados = 0, 0
+    num_avaliacoes = 0
+    num_nos_gerados = 0
     start_time = time.perf_counter()
 
-    # Executa o algoritmo enquanto houver elementos na fronteira e não ultrapassar o tempo limite
     while fronteira and num_avaliacoes < max_evaluations and (time.perf_counter() - start_time) * 1000 < max_time:
         custo_atual, estacoes = heapq.heappop(fronteira)
         num_avaliacoes += 1
 
-        # Verifica se a solução atual já foi visitada
         if (tuple(estacoes), custo_atual) in visitados:
             continue
         visitados.add((tuple(estacoes), custo_atual))
 
-        # Verifica se a solução atual é melhor que a melhor solução encontrada
         custo_medio = calcular_custo_deslocacao(estacoes, matriz)
         if custo_medio < 3 and custo_atual < melhor_custo_solucao:
             melhor_solucao = estacoes
             melhor_custo_solucao = custo_atual
 
-        # Encontra a melhor posição para adicionar uma nova estação
         melhor_posicao, melhor_custo = melhor_posicao_para_nova_estacao(estacoes, matriz)
         if melhor_posicao:
             novas_estacoes = estacoes + [melhor_posicao]
@@ -429,14 +423,13 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
             num_nos_gerados += 1
 
     tempo_execucao = (time.perf_counter() - start_time) * 1000
-
+    # Verificar se a solução é válida e foi encontrada em menos de 1 minuto
     if melhor_solucao and tempo_execucao <= 60000:
         custo_medio = calcular_custo_deslocacao(melhor_solucao, matriz)
         custo_da_solucao = len(melhor_solucao) * 1000 + 100 * custo_medio
         return melhor_solucao, num_avaliacoes, num_nos_gerados, tempo_execucao, custo_medio, custo_da_solucao
 
     return None, num_avaliacoes, num_nos_gerados, tempo_execucao, None, None
-
 
 # Tabela de resultados
 resultados = {
@@ -491,9 +484,10 @@ for idx, matriz_id in enumerate(matriz):
         resultados["Avaliações"].append(resultado[1])
         resultados["Gerações"].append(resultado[2])
         resultados["Custo"].append(f"{resultado[4]:.3f}")
-        resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
+        resultados["Tempo (msec)"].append(f"{resultado[3]:.0f}")
         resultados["Melhor resultado"].append(f"{resultado[5]:.0f}")
     else:
+        # Apresentar resultados para instâncias sem solução válida
         print(f"Instancia ID {idx + 1}: Nenhuma solução válida encontrada em 1 minuto")
         print(f"Avaliações: {resultado[1]}")
         print(f"Gerações: {resultado[2]}")
@@ -550,6 +544,7 @@ the_table = ax.table(cellText=df.values,
 header_labels = ['Instância', 'Avaliações', 'Gerações', 'Custo', 'Tempo (msec)', 'Melhor resultado']
 num_columns = len(df.columns)  # Número de colunas no DataFrame
 
+# Adicionar o cabeçalho à tabela com formatação
 for i in range(min(num_columns, len(header_labels))):  # Garantir que i não exceda o número de colunas
     cell = the_table.get_celld()[(0, i)]
     cell.get_text().set_text(header_labels[i])
@@ -565,4 +560,6 @@ for key, cell in the_table.get_celld().items():
     cell.set_height(0.065)
     cell.set_width(0.2)
 
-plt.show()
+
+#  retirar o comentário da linha abaixo para mostrar a tabela com os resultados
+#plt.show()
