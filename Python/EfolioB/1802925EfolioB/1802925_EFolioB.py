@@ -300,20 +300,34 @@ matriz = [
         [0, 0, 6, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
         [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 3],
         [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 7, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 6, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0],
     ],
 ]
 
+
 def calcular_custo_deslocacao(estacoes, matriz):
+    """
+    Calcula o custo médio de deslocação das famílias até as estações.
+
+    Args:
+        estacoes (list of tuple): Lista de coordenadas das estações.
+        matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
+
+    Returns:
+        float: O custo médio de deslocação.
+    """
     n, m = len(matriz), len(matriz[0])
     distancias = np.full((n, m), np.inf)
 
+    # Calcula a distância mínima de cada célula para qualquer estação
     for (ex, ey) in estacoes:
         for i in range(n):
             for j in range(m):
                 dist = max(abs(ex - i), abs(ey - j))
                 distancias[i][j] = min(distancias[i][j], dist)
 
+    # Calcula o custo total e o número de famílias
     custo_total, num_familias = 0, 0
     for i in range(n):
         for j in range(m):
@@ -323,15 +337,40 @@ def calcular_custo_deslocacao(estacoes, matriz):
 
     return custo_total / num_familias if num_familias > 0 else 0
 
+
 def heuristica(estacoes, matriz, peso_estacao=1000, peso_custo=100):
+    """
+    Calcula uma estimativa do custo de uma solução (combinação de estações).
+
+    Args:
+        estacoes (list of tuple): Lista de coordenadas das estações.
+        matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
+        peso_estacao (int): Peso atribuído ao número de estações na heurística.
+        peso_custo (int): Peso atribuído ao custo médio de deslocação na heurística.
+
+    Returns:
+        float: A estimativa do custo da solução.
+    """
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
     return len(estacoes) * peso_estacao + peso_custo * custo_medio
 
+
 def melhor_posicao_para_nova_estacao(estacoes, matriz):
+    """
+    Encontra a melhor posição para adicionar uma nova estação, minimizando o custo.
+
+    Args:
+        estacoes (list of tuple): Lista de coordenadas das estações.
+        matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
+
+    Returns:
+        tuple: A melhor posição (x, y) e o custo resultante.
+    """
     n, m = len(matriz), len(matriz[0])
     melhor_custo = float('inf')
     melhor_posicao = None
 
+    # Avalia todas as posições possíveis para uma nova estação
     for i in range(n):
         for j in range(m):
             if (i, j) not in estacoes:
@@ -343,7 +382,19 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
 
     return melhor_posicao, melhor_custo
 
+
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
+    """
+    Executa o algoritmo A* melhorativo para encontrar a melhor combinação de estações.
+
+    Args:
+        matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
+        max_time (int): Tempo máximo de execução em milissegundos.
+        max_evaluations (int): Número máximo de avaliações de soluções.
+
+    Returns:
+        tuple: A melhor solução, número de avaliações, número de nós gerados, tempo de execução, custo médio e custo da solução.
+    """
     estacoes = []
     custo_inicial = heuristica(estacoes, matriz)
     fronteira = [(custo_inicial, estacoes)]
@@ -354,19 +405,23 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     num_avaliacoes, num_nos_gerados = 0, 0
     start_time = time.perf_counter()
 
+    # Executa o algoritmo enquanto houver elementos na fronteira e não ultrapassar o tempo limite
     while fronteira and num_avaliacoes < max_evaluations and (time.perf_counter() - start_time) * 1000 < max_time:
         custo_atual, estacoes = heapq.heappop(fronteira)
         num_avaliacoes += 1
 
+        # Verifica se a solução atual já foi visitada
         if (tuple(estacoes), custo_atual) in visitados:
             continue
         visitados.add((tuple(estacoes), custo_atual))
 
+        # Verifica se a solução atual é melhor que a melhor solução encontrada
         custo_medio = calcular_custo_deslocacao(estacoes, matriz)
         if custo_medio < 3 and custo_atual < melhor_custo_solucao:
             melhor_solucao = estacoes
             melhor_custo_solucao = custo_atual
 
+        # Encontra a melhor posição para adicionar uma nova estação
         melhor_posicao, melhor_custo = melhor_posicao_para_nova_estacao(estacoes, matriz)
         if melhor_posicao:
             novas_estacoes = estacoes + [melhor_posicao]
@@ -381,6 +436,7 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
         return melhor_solucao, num_avaliacoes, num_nos_gerados, tempo_execucao, custo_medio, custo_da_solucao
 
     return None, num_avaliacoes, num_nos_gerados, tempo_execucao, None, None
+
 
 # Tabela de resultados
 resultados = {
@@ -424,7 +480,7 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Avaliações: {resultado[1]}")
         print(f"Gerações: {resultado[2]}")
         print(f"Custo: {resultado[5]:.0f}")
-        print(f"Tempo: {resultado[3]:.2f} msec")
+        print(f"Tempo: {resultado[3]:.0f} msec")
         print(f"-------------------------------------------")
         print(f"Número de estações (A): {len(resultado[0])}")
         print(f"Custo médio de deslocação (B): {resultado[4]:.3f}")
@@ -441,7 +497,7 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Instancia ID {idx + 1}: Nenhuma solução válida encontrada em 1 minuto")
         print(f"Avaliações: {resultado[1]}")
         print(f"Gerações: {resultado[2]}")
-        print(f"Tempo de execução: {resultado[3]:.2f} msec")
+        print(f"Tempo de execução: {resultado[3]:.0f} msec")
         print(f"-------------------------------------------")
 
         # Adicionar resultados à tabela
@@ -449,7 +505,7 @@ for idx, matriz_id in enumerate(matriz):
         resultados["Avaliações"].append(resultado[1])
         resultados["Gerações"].append(resultado[2])
         resultados["Custo"].append("N/A")
-        resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
+        resultados["Tempo (msec)"].append(f"{resultado[3]:.0f}")
         resultados["Melhor resultado"].append("N/A")
 
 # Apresentar as melhores soluções válidas encontradas em menos de 1 minuto
