@@ -4,11 +4,10 @@ import time
 import math
 import matplotlib.pyplot as plt
 import pandas as pd
-
 from termcolor import colored
 from IPython.display import display, HTML
 
-# Custos de deslocação
+# Definição dos custos de deslocação
 custo_dist = {0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 8, 6: 10}
 max_dist = 6
 
@@ -303,21 +302,10 @@ matriz = [
         [0, 0, 6, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
         [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 3],
         [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 7, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 6, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0],
     ],
 ]
 
-
-
-"""
-    Calculo do custo médio de deslocação das famílias até as estações
-    Args:
-        estacoes: Lista de tuplas (x, y) representando as coordenadas das estações.
-        matriz: Matriz de zonas com o número de famílias em cada posição.
-    Returns:
-        O custo médio de deslocação.
-    """
 def calcular_custo_deslocacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
     distancias = np.full((n, m), np.inf)
@@ -328,41 +316,19 @@ def calcular_custo_deslocacao(estacoes, matriz):
                 dist = max(abs(ex - i), abs(ey - j))
                 distancias[i][j] = min(distancias[i][j], dist)
 
-    custo_total = 0
-    num_familias = 0
+    custo_total, num_familias = 0, 0
     for i in range(n):
         for j in range(m):
             if matriz[i][j] > 0:
                 custo_total += matriz[i][j] * custo_dist[min(distancias[i][j], max_dist)]
                 num_familias += matriz[i][j]
 
-    custo_medio = custo_total / num_familias if num_familias > 0 else 0
-    return custo_medio
+    return custo_total / num_familias if num_familias > 0 else 0
 
-"""
-    Calcula uma estimativa do custo de uma solução (combinação de estações).
-    Args:
-        estacoes: Lista de tuplas (x, y) representando as coordenadas das estações.
-        matriz: Matriz de zonas com o número de famílias em cada posição.
-        peso_estacao: Peso atribuído ao número de estações na heurística.
-        peso_custo: Peso atribuído ao custo médio de deslocação na heurística.
-    Returns:
-        A estimativa do custo da solução.
-    """
 def heuristica(estacoes, matriz, peso_estacao=1000, peso_custo=100):
     custo_medio = calcular_custo_deslocacao(estacoes, matriz)
     return len(estacoes) * peso_estacao + peso_custo * custo_medio
 
-
-
-"""
-    Encontra a melhor posição para adicionar uma nova estação, minimizando o custo.
-    Args:
-        estacoes: Lista de tuplas (x, y) representando as coordenadas das estações.
-        matriz: Matriz de zonas com o número de famílias em cada posição.
-    Returns:
-        Uma tupla contendo a melhor posição (x, y) e o custo resultante.
-    """
 def melhor_posicao_para_nova_estacao(estacoes, matriz):
     n, m = len(matriz), len(matriz[0])
     melhor_custo = float('inf')
@@ -370,27 +336,15 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
 
     for i in range(n):
         for j in range(m):
-            nova_estacao = (i, j)
-            if nova_estacao not in estacoes:
-                novas_estacoes = estacoes + [nova_estacao]
+            if (i, j) not in estacoes:
+                novas_estacoes = estacoes + [(i, j)]
                 novo_custo = heuristica(novas_estacoes, matriz)
                 if novo_custo < melhor_custo:
                     melhor_custo = novo_custo
-                    melhor_posicao = nova_estacao
+                    melhor_posicao = (i, j)
 
     return melhor_posicao, melhor_custo
 
-
-"""
-    Executa o algoritmo A* melhortivo para encontrar a melhor combinação de estações.
-    Args:
-        matriz: Matriz de zonas com o número de famílias em cada posição.
-        max_time: Tempo máximo de execução em milissegundos.
-        max_evaluations: Número máximo de avaliações de soluções.
-    Returns:
-        Uma tupla contendo a melhor solução (lista de estações), número de avaliações,
-        número de nós gerados, tempo de execução, custo médio e custo da solução.
-    """
 def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     estacoes = []
     custo_inicial = heuristica(estacoes, matriz)
@@ -399,8 +353,7 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     melhor_solucao = None
     melhor_custo_solucao = float('inf')
 
-    num_avaliacoes = 0
-    num_nos_gerados = 0
+    num_avaliacoes, num_nos_gerados = 0, 0
     start_time = time.perf_counter()
 
     while fronteira and num_avaliacoes < max_evaluations and (time.perf_counter() - start_time) * 1000 < max_time:
@@ -422,8 +375,7 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
             heapq.heappush(fronteira, (melhor_custo, novas_estacoes))
             num_nos_gerados += 1
 
-    end_time = time.perf_counter()
-    tempo_execucao = (end_time - start_time) * 1000
+    tempo_execucao = (time.perf_counter() - start_time) * 1000
 
     if melhor_solucao and tempo_execucao <= 60000:
         custo_medio = calcular_custo_deslocacao(melhor_solucao, matriz)
@@ -432,7 +384,6 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
 
     return None, num_avaliacoes, num_nos_gerados, tempo_execucao, None, None
 
-# Tabela de resultados
 resultados = {
     "Instância": [],
     "Avaliações": [],
@@ -442,21 +393,17 @@ resultados = {
     "Melhor resultado": [],
 }
 
-# Dicionário para armazenar as melhores soluções
 melhores_solucoes = {}
 
-# Executar o algoritmo para todas as matrizes
 for idx, matriz_id in enumerate(matriz):
     resultado = a_star_melhorativo(matriz_id)
     if resultado and resultado[0] is not None:
-        # Armazenar a melhor solução
         if idx + 1 not in melhores_solucoes or resultado[5] < melhores_solucoes[idx + 1][5]:
             melhores_solucoes[idx + 1] = resultado
 
         print(f"-------------------------------------------")
         print(f"Instancia ID {idx + 1}:")
 
-        # Apresentar a solução no formato desejado
         n, m = len(matriz_id), len(matriz_id[0])
         solucao_formatada = np.array(matriz_id).astype(str)
         for x, y in resultado[0]:
@@ -469,7 +416,6 @@ for idx, matriz_id in enumerate(matriz):
                 linha_colorida.append(celula)
             print(" ".join(linha_colorida))
 
-        # Imprimir métricas da solução
         print(f"-------------------------------------------")
         print(f"Avaliações: {resultado[1]}")
         print(f"Gerações: {resultado[2]}")
@@ -480,14 +426,11 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Custo médio de deslocação (B): {resultado[4]:.3f}")
         print(f"-------------------------------------------")
 
-        # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
         resultados["Gerações"].append(resultado[2])
         resultados["Custo"].append(f"{resultado[4]:.3f}")
         resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
-        print(f"-------------------------------------------")
-        print(f"-------------------------------------------")
         resultados["Melhor resultado"].append(f"{resultado[5]:.0f}")
     else:
         print(f"Instancia ID {idx + 1}: Nenhuma solução válida encontrada em 1 minuto")
@@ -496,59 +439,50 @@ for idx, matriz_id in enumerate(matriz):
         print(f"Tempo de execução: {resultado[3]:.2f} msec")
         print(f"-------------------------------------------")
 
-        # Adicionar resultados à tabela
         resultados["Instância"].append(idx + 1)
         resultados["Avaliações"].append(resultado[1])
         resultados["Gerações"].append(resultado[2])
         resultados["Custo"].append("N/A")
         resultados["Tempo (msec)"].append(f"{resultado[3]:.2f}")
-        print(f"-------------------------------------------")
-        print(f"-------------------------------------------")
         resultados["Melhor resultado"].append("N/A")
 
-        # Apresentar as melhores soluções em anexo
-        print("\nMelhores Soluções:")
-        for instancia, resultado in melhores_solucoes.items():
-            print(f"\nInstancia ID {instancia}:")
-            n, m = len(matriz[instancia - 1]), len(matriz[instancia - 1][0])
-            solucao_formatada = np.array(matriz[instancia - 1]).astype(str)
-            for x, y in resultado[0]:
-                solucao_formatada[x][y] += "#"
-            for linha in solucao_formatada:
-                linha_colorida = []
-                for celula in linha:
-                    if "#" in celula:
-                        celula = colored(celula, 'red')
-                    linha_colorida.append(celula)
-                print(" ".join(linha_colorida))
-            print(f"Custo da solução: {resultado[5]:.0f}")
+print("\nMelhores Soluções:")
+for instancia, resultado in melhores_solucoes.items():
+    if resultado[3] <= 60000:
+        print(f"\nInstancia ID {instancia}:")
+        n, m = len(matriz[instancia - 1]), len(matriz[instancia - 1][0])
+        solucao_formatada = np.array(matriz[instancia - 1]).astype(str)
+        for x, y in resultado[0]:
+            solucao_formatada[x][y] += "#"
+        for linha in solucao_formatada:
+            linha_colorida = []
+            for celula in linha:
+                if "#" in celula:
+                    celula = colored(celula, 'red')
+                linha_colorida.append(celula)
+            print(" ".join(linha_colorida))
+        print(f"Custo da solução: {resultado[5]:.0f}")
 
-
-# criar um DataFrame com os resultados e mostrar a tabela
 df = pd.DataFrame(resultados)
 df = df.set_index("Instância")
 
-# plotar a tabela com os resultados
 fig, ax = plt.subplots(figsize=(15, 8))
 ax.axis('tight')
 ax.axis('off')
 
-# constroi o cabeçalho da tabela
 header = pd.MultiIndex.from_product([['Algoritmo 1 / configurações 1'], df.columns.tolist()])
 df.columns = header
 
-# cria a tabela
 the_table = ax.table(cellText=df.values,
                      colLabels=df.columns.levels[1],
                      rowLabels=df.index,
                      cellLoc='center',
                      loc='center')
 
-# constroi o cabeçalho da tabela
 header_labels = ['Instância', 'Avaliações', 'Gerações', 'Custo', 'Tempo (msec)', 'Melhor resultado']
-num_columns = len(df.columns)  # Get the number of columns in the DataFrame
+num_columns = len(df.columns)
 
-for i in range(min(num_columns, len(header_labels))):  # Ensure i does not exceed the number of columns
+for i in range(min(num_columns, len(header_labels))):
     cell = the_table.get_celld()[(0, i)]
     cell.get_text().set_text(header_labels[i])
     cell.get_text().set_fontsize(12)
@@ -556,7 +490,6 @@ for i in range(min(num_columns, len(header_labels))):  # Ensure i does not excee
     cell.get_text().set_ha('center')
     cell.get_text().set_va('center')
 
-# ajusta o tamanho das células
 the_table.auto_set_font_size(False)
 the_table.set_fontsize(12)
 for key, cell in the_table.get_celld().items():
