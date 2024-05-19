@@ -417,6 +417,8 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
             melhor_solucao = estacoes
             melhor_custo_solucao = custo_atual
 
+        # gera os sucessores do nó atual
+        # encontrar a melhor posição para adicionar uma nova estação
         melhor_posicao, melhor_custo = melhor_posicao_para_nova_estacao(estacoes, matriz)
         if melhor_posicao:
             novas_estacoes = estacoes + [melhor_posicao]
