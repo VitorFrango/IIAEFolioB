@@ -370,6 +370,7 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
     melhor_custo = float('inf')
     melhor_posicao = None
 
+
     # Verificar todas as posições da matriz
     for i in range(n):
         for j in range(m):
