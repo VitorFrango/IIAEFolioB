@@ -383,13 +383,13 @@ def melhor_posicao_para_nova_estacao(estacoes, matriz):
 
     return melhor_posicao, melhor_custo
 
-def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
+def a_star_melhorativo(matriz, max_time=60000, max_avaliacoes=100000):
     """
     Executa o algoritmo A* melhorativo para encontrar a melhor combinação de estações.
     Args:
         matriz (list of list): Matriz de zonas com o número de famílias em cada posição.
         max_time (int): Tempo máximo de execução em milissegundos.
-        max_evaluations (int): Número máximo de avaliações de soluções.
+        max_avaliacoes (int): Número máximo de avaliações de soluções.
     Returns:
         tuple: A melhor solução, número de avaliações, número de nós gerados, tempo de execução, custo médio e custo da solução.
     """
@@ -404,7 +404,7 @@ def a_star_melhorativo(matriz, max_time=60000, max_evaluations=100000):
     num_nos_gerados = 0
     start_time = time.perf_counter()
 
-    while fronteira and num_avaliacoes < max_evaluations and (time.perf_counter() - start_time) * 1000 < max_time:
+    while fronteira and num_avaliacoes < max_avaliacoes and (time.perf_counter() - start_time) * 1000 < max_time:
         custo_atual, estacoes = heapq.heappop(fronteira)
         num_avaliacoes += 1
 
